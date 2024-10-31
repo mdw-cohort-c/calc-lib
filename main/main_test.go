@@ -33,14 +33,18 @@ func TestHandler_OutputWriterError(t *testing.T) {
 	boink := errors.New("boink")
 	writer := &ErringWriter{err: boink}
 	handler := NewHandler(writer, nil)
+
 	err := handler.Handle([]string{"3", "4"})
+
 	assertError(t, err, boink)
 	assertError(t, err, errWriterFailure)
 }
 func TestHandler_HappyPath(t *testing.T) {
 	writer := &bytes.Buffer{}
 	handler := NewHandler(writer, &calc.Addition{})
+
 	err := handler.Handle([]string{"3", "4"})
+
 	assertError(t, err, nil)
 	if writer.String() != "7" {
 		t.Errorf("expected 7, got %s", writer.String())
