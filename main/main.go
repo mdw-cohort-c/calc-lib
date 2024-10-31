@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -19,11 +20,11 @@ func main() {
 }
 
 type Handler struct {
-	stdout     *os.File
+	stdout     io.Writer
 	calculator *calc.Addition
 }
 
-func NewHandler(stdout *os.File, calculator *calc.Addition) *Handler {
+func NewHandler(stdout io.Writer, calculator *calc.Addition) *Handler {
 	return &Handler{
 		stdout:     stdout,
 		calculator: calculator,
@@ -35,16 +36,16 @@ func (this *Handler) Handle(args []string) error {
 	}
 	a, err := strconv.Atoi(args[0])
 	if err != nil {
-		return fmt.Errorf("%w: %w", errInvalidArg, err)
+		return fmt.Errorf("%w: [%s] %w", errInvalidArg, args[0], err)
 	}
 	b, err := strconv.Atoi(args[1])
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: [%s] %w", errInvalidArg, args[1], err)
 	}
 	result := this.calculator.Calculate(a, b)
 	_, err = fmt.Fprint(this.stdout, result)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %w", errWriterFailure, err)
 	}
 	return nil
 }
@@ -52,4 +53,5 @@ func (this *Handler) Handle(args []string) error {
 var (
 	errWrongNumberOfArgs = errors.New("usage: calc [a] [b]")
 	errInvalidArg        = errors.New("invalid argument")
+	errWriterFailure     = errors.New("writer failure")
 )
